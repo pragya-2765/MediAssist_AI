@@ -75,12 +75,15 @@ MediAssist_AI/
 1️⃣ Clone the Repository
 git clone https://github.com/pragya-2765/MediAssist_AI.git
 cd MediAssist_AI
+
 2️⃣ Create a Virtual Environment (Recommended)
 python -m venv venv
-source venv/bin/activate     # Windows: venv\Scripts\activate
+Windows: venv\Scripts\activate
+
 3️⃣ Install Backend Dependencies
 cd backend
 pip install -r requirements.txt
+
 4️⃣ Configure Environment Variables
 Create a .env file inside the backend directory:
 
