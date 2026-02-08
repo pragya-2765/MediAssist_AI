@@ -154,7 +154,7 @@ if "symptom_id" not in st.session_state:
 if "analysis_result" not in st.session_state:
     st.session_state.analysis_result = None
 
-BACKEND_URL = "http://localhost:8000"
+BACKEND_URL = "https://mediassist-ai-4q62.onrender.com"
 
 # Header
 st.markdown("""
@@ -509,4 +509,5 @@ st.markdown("""
     <p><strong>MediAssist AI</strong> | Your Personal Healthcare Assistant</p>
     <p style='font-size: 0.9rem;'>This application provides general wellness information only and is not a substitute for professional medical advice.</p>
 </div>
+
 """, unsafe_allow_html=True)
