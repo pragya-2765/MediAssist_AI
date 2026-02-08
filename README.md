@@ -98,7 +98,7 @@ http://127.0.0.1:8000
 
 ---
 
-##📌 API Documentation
+## 📌 API Documentation
 
 After starting the server, open:
 
@@ -108,7 +108,7 @@ http://127.0.0.1:8000/docs
 
 ---
 
-##🔒 Security Practices
+## 🔒 Security Practices
 
 • API keys are stored securely using environment variables
 
@@ -118,14 +118,14 @@ http://127.0.0.1:8000/docs
 
 ---
 
-##🚫 Medical Disclaimer
+## 🚫 Medical Disclaimer
 
 MediAssist AI does not provide medical diagnoses.
 All AI-generated outputs are informational only and must not be used as a substitute for professional medical advice.
 
 ---
 
-##📜 License
+## 📜 License
 
 This project is licensed under the MIT License and is intended for academic and learning purposes.
 
