@@ -88,6 +88,7 @@ pip install -r requirements.txt
 Create a .env file inside the backend directory:
 
 GEMINI_API_KEY=your_gemini_api_key_here
+
 🚫 Do NOT upload .env to GitHub
 
 5️⃣ Run the Backend Server
@@ -98,6 +99,7 @@ http://127.0.0.1:8000
 ---
 
 ##📌 API Documentation
+
 After starting the server, open:
 
 Swagger UI:
@@ -107,6 +109,7 @@ http://127.0.0.1:8000/docs
 ---
 
 ##🔒 Security Practices
+
 • API keys are stored securely using environment variables
 
 • .env and database files are excluded via .gitignore
@@ -116,12 +119,14 @@ http://127.0.0.1:8000/docs
 ---
 
 ##🚫 Medical Disclaimer
+
 MediAssist AI does not provide medical diagnoses.
 All AI-generated outputs are informational only and must not be used as a substitute for professional medical advice.
 
 ---
 
 ##📜 License
+
 This project is licensed under the MIT License and is intended for academic and learning purposes.
 
 ---
