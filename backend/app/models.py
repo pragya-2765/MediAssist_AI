@@ -8,6 +8,7 @@ class User(Base):
     id = Column(Integer, primary_key=True)
     full_name = Column(String, nullable=False)
     email = Column(String, unique=True, nullable=False)
+    location = Column(String, nullable=True)
 
     symptoms = relationship("Symptom", back_populates="user")
 
@@ -21,3 +22,4 @@ class Symptom(Base):
     user_id = Column(Integer, ForeignKey("users.id"))
 
     user = relationship("User", back_populates="symptoms")
+
