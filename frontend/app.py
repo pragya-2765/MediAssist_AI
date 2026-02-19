@@ -154,7 +154,7 @@ if "symptom_id" not in st.session_state:
 if "analysis_result" not in st.session_state:
     st.session_state.analysis_result = None
 
-BACKEND_URL = "https://mediassist-ai-4q62.onrender.com"
+BACKEND_URL = "http://localhost:8000"
 
 # Header
 st.markdown("""
@@ -214,6 +214,31 @@ with col1:
         
         name = st.text_input("Full Name", placeholder="Enter your full name (for new users)", key="user_name")
         email = st.text_input("Email Address", placeholder="Enter your email", key="user_email")
+        st.markdown("### 📍 Location")
+
+        col_loc1, col_loc2, col_loc3 = st.columns(3)
+
+        with col_loc1:
+            area = st.text_input(
+                "Area / Locality",
+                placeholder="e.g., Andheri West",
+                key="user_area"
+            )
+
+        with col_loc2:
+            city = st.text_input(
+                "City",
+                placeholder="e.g., Mumbai",
+                key="user_city"
+          )
+
+        with col_loc3:
+            country = st.text_input(
+                "Country",
+                placeholder="e.g., India",
+                key="user_country"
+           )
+
         
         col1_1, col1_2 = st.columns(2)
         with col1_1:
@@ -223,59 +248,49 @@ with col1:
                 st.rerun()
     
     if submit_user:
+        # Validation
+        if not area or not city or not country:
+            st.error("⚠️ Please complete Area, City, and Country under Location")
+            st.stop()
+
         if not email:
             st.error("⚠️ Please enter your email address")
         else:
-            with st.spinner("Checking user..."):
+            # 1. Create the location string explicitly
+            full_location_path = f"{area}, {city}, {country}" 
+            
+            with st.spinner("Processing..."):
                 try:
-                    # First, try to get user by email
-                    response = requests.get(f"{BACKEND_URL}/users/", params={"email": email})
+                    # 2. Check if user exists
+                    response = requests.get(f"{BACKEND_URL}/users/")
                     if response.status_code == 200:
                         users = response.json()
-                        existing_user = None
-                        for user in users:
-                            if user.get("email") == email:
-                                existing_user = user
-                                break
+                        existing_user = next((u for u in users if u.get("email") == email), None)
                         
                         if existing_user:
-                            # User exists - log them in
                             st.session_state.user_id = existing_user["id"]
-                            st.success(f"✅ Welcome back! User ID: {existing_user['id']}")
+                            st.success(f"✅ Welcome back!")
                         else:
-                            # User doesn't exist - create new one
+                            # 3. Register New User
                             if not name:
-                                st.error("⚠️ Please enter your name to create a new account")
+                                st.error("⚠️ New email detected. Please enter Full Name to register.")
                             else:
-                                create_response = requests.post(f"{BACKEND_URL}/users/",json={"full_name": name, "email": email})
+                                # USE THE EXPLICIT STRING HERE
+                                payload = {
+                                    "full_name": name, 
+                                    "email": email, 
+                                    "location": full_location_path 
+                                }
+                                create_response = requests.post(f"{BACKEND_URL}/users/", json=payload)
 
-                                if create_response.status_code == 200:
+                                if create_response.status_code in [200, 201]:
                                     user_data = create_response.json()
                                     st.session_state.user_id = user_data["id"]
-                                    st.success(f"✅ New user created! Your User ID: {user_data['id']}")
+                                    st.session_state.user_data= user_data
+                                    st.success(f"✅ User Created: {user_data['id']}")
+                                    st.rerun() # FORCE REFRESH TO SHOW DATA
                                 else:
-                                    try:
-                                        error_detail = create_response.json().get("detail", create_response.text)
-                                    except:
-                                        error_detail = create_response.text
-                                    st.error(f"❌ Failed to create user: {error_detail}")
-                    else:
-                        # Try to create user if get fails
-                        if not name:
-                            st.error("⚠️ User not found. Please enter your name to create an account")
-                        else:
-                            create_response = requests.post(f"{BACKEND_URL}/users/",json={"full_name": name, "email": email})
-                            if create_response.status_code == 200:
-                                user_data = create_response.json()
-                                st.session_state.user_id = user_data["id"]
-                                st.success(f"✅ New user created! Your User ID: {user_data['id']}")
-                            else:
-                                try:
-                                    error_detail = create_response.json().get("detail", create_response.text)
-                                except:
-                                    error_detail = create_response.text
-                                st.error(f"❌ Failed to create user: {error_detail}")
-                
+                                    st.error(f"❌ Failed: {create_response.text}")
                 except Exception as e:
                     st.error(f"❌ Error: {str(e)}")
     
@@ -303,6 +318,7 @@ with col2:
                 
                 st.markdown(f"**Name:** {user_data.get('full_name', 'N/A')}")
                 st.markdown(f"**Email:** {user_data.get('email', 'N/A')}")
+                st.markdown(f"**Location:** {user_data.get('location', 'N/A')}")
                 
                 # Get user's symptoms history
                 symptoms_response = requests.get(f"{BACKEND_URL}/symptoms/user/{st.session_state.user_id}")
@@ -466,31 +482,68 @@ if st.session_state.user_id:
         st.markdown("---")
         st.markdown("""
         <div class="analysis-result">
-            <h4>📋 Analysis Summary</h4>
+            <h4>🩺 Explanation of Symptoms</h4>
         """, unsafe_allow_html=True)
 
-        st.markdown(st.session_state.analysis_result['summary'])
+        st.markdown(
+            st.session_state.analysis_result.get(
+                "explain_symptoms", "No explanation available."
+            )
+       )
+
+        st.markdown("<h4>📋 Wellness Summary</h4>", unsafe_allow_html=True)
+        st.markdown(
+            st.session_state.analysis_result.get(
+                "summary", "No summary available."
+            )
+        )
 
         st.markdown("<h4>⚕️ Possible Conditions</h4>", unsafe_allow_html=True)
-        for condition in st.session_state.analysis_result['possible_conditions']:
+        for condition in st.session_state.analysis_result.get("possible_conditions", []):
             st.markdown(f"- {condition}")
 
+        st.markdown("<h4>💡 Lifestyle Tips</h4>", unsafe_allow_html=True)
+        for tip in st.session_state.analysis_result.get("lifestyle_tips", []):
+            st.markdown(f"- {tip}")
+
+        st.markdown("<h4>⏰ Medication & Appointment Reminders</h4>", unsafe_allow_html=True)
+        for reminder in st.session_state.analysis_result.get(
+            "remind_medication_appointments", []
+        ):
+            st.markdown(f"- {reminder}")
+
         st.markdown("<h4>💊 Recommended Actions</h4>", unsafe_allow_html=True)
-        for i, action in enumerate(st.session_state.analysis_result['recommended_actions'], 1):
+        for i, action in enumerate(
+            st.session_state.analysis_result.get("recommended_actions", []), 1
+        ):
             st.markdown(f"""
             <div class="action-item">
                 <strong>{i}. {action}</strong>
             </div>
             """, unsafe_allow_html=True)
-
+        
+        st.markdown("<h4>📍 Nearest Doctor Suggestion</h4>", unsafe_allow_html=True)
+        nearest_doctor = st.session_state.analysis_result.get("nearest_doctor", {})
+        if nearest_doctor:
+            st.markdown(f"""
+            <div class="action-item">
+                <strong>Doctor Name:</strong> {nearest_doctor.get('name', 'N/A')}<br>
+                <strong>Specialty:</strong> {nearest_doctor.get('specialty', 'N/A')}<br>
+                <strong>Location:</strong> {nearest_doctor.get('location', 'N/A')}<br>
+                <em>⚠️ This doctor suggestion is AI-generated and may not be real. Always verify credentials and consult a healthcare professional.</em>
+            </div>
+            """, unsafe_allow_html=True)
+        else:
+            st.markdown("No doctor suggestions available.")
+        # Disclaimer
         if "disclaimer" in st.session_state.analysis_result:
             st.warning(
             f"⚕️ **Medical Disclaimer:** {st.session_state.analysis_result['disclaimer']}"
-            )
+        )
 
         st.markdown("</div>", unsafe_allow_html=True)
 
-        
+
         col_reset1, col_reset2 = st.columns(2)
         with col_reset1:
             if st.button("🔄 Clear Results", use_container_width=True):
@@ -509,6 +562,4 @@ st.markdown("""
     <p><strong>MediAssist AI</strong> | Your Personal Healthcare Assistant</p>
     <p style='font-size: 0.9rem;'>This application provides general wellness information only and is not a substitute for professional medical advice.</p>
 </div>
-
 """, unsafe_allow_html=True)
-
