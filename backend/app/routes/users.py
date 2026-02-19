@@ -15,6 +15,7 @@ def get_db():
 @router.post("/")
 def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     logger.info(f"Creating user with email: {user.email}")
+    print("USER CREATE PAYLOAD:", user)
     return crud.create_user(db, user)
 
 @router.get("/")
@@ -24,3 +25,4 @@ def get_users(db: Session = Depends(get_db)):
 @router.get("/{user_id}")
 def get_user(user_id: int, db: Session = Depends(get_db)):
     return crud.get_user(db, user_id)
+
